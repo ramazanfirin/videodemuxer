@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>videodemuxer</groupId>
   <artifactId>videodemuxer</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.3-SNAPSHOT</version>
   
   <dependencies>
   	<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->

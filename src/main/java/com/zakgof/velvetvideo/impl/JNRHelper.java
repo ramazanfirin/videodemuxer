@@ -53,6 +53,7 @@ public class JNRHelper {
 	        	props.load(is);
 	        	String version = props.getProperty("Version");
 	        	LOG.info("Loading velvet-video-natives version " + version);
+	        	System.out.println("Loading velvet-video-natives version " + version);
 	        	if (version.compareTo(MIN_NATIVE_VERSION) < 0) {
 	        		throw new VelvetVideoException("Minimum compatible version of velvet-video-natives is " + MIN_NATIVE_VERSION + ", detected version " + version);
 	        	}
@@ -70,6 +71,7 @@ public class JNRHelper {
 			throw new VelvetVideoException("Cannot create a dir for extracting native libraries.");
 		}
 		//LOG.atDebug().addArgument(dir).log("Velvet-video native extraction location is {}");
+		System.out.println("Velvet-video native extraction location is {} " + dir);
 		return dir;
 	}
 
@@ -81,30 +83,37 @@ public class JNRHelper {
 	private static <L> L forceLoad(Class<L> clazz, String libShortName, int libVersion) {
 		String libPath = null;
         try {
-        	//LOG.atDebug().addArgument(libShortName).addArgument(libVersion).log("Requesting loading native lib {}.{}");
+        	LOG.info("Requesting loading native lib {}.{}"+" "+libShortName," "+libVersion);
+        	System.out.println("Requesting loading native lib {}.{}"+" "+libShortName +" "+libVersion);
         	Platform nativePlatform = Platform.getNativePlatform();
             String libfile = libVersionAndName(libShortName, libVersion);
             libShortName = fixShortName(libShortName, libVersion);
 
             libPath = nativePlatform.locateLibrary(libShortName, Arrays.asList(extractionDir.toString()));
-            //LOG.atDebug().addArgument(libfile).addArgument(extractionDir).log("Checking native lib {} at {}");
+            LOG.info("Checking native lib {} at {}"+libVersion);
+            System.out.println("Checking native lib {} at {}"+libVersion);
+            LOG.info("Checking libShortName:"+libShortName);
+            System.out.println("Checking libShortName:"+libShortName);
             if (!new File(libPath).isAbsolute()) {
             	extractNatives();
             }
             L lib = LibraryLoader.create(clazz).failImmediately().search(extractionDir.toString()).load(libShortName);
-            //LOG.atDebug().addArgument(libfile).log("Loaded {}");
+            LOG.info("Loaded {}:"+libfile);
+            System.out.println("Loaded {}:"+libfile);
 			return lib;
         } catch(UnsatisfiedLinkError e) {
-        	//LOG.error("Error loading native library " + libPath, e);
+        	LOG.error("Error loading native library " + libPath, e);
             throw new VelvetVideoException("Error loading native library " + libPath, e);
         }
     }
 
 	private static void extractNatives() {
-		//LOG.atInfo().log("Extracting native libraries");
+		LOG.info("Extracting native libraries");
+		System.out.println("Extracting native libraries");
 		String folder = "velvet-video-natives/" + PLATFORM + "/";
 		URL resource = Thread.currentThread().getContextClassLoader().getResource(folder);
-		//LOG.atDebug().addArgument(folder).addArgument(resource).log("Resolving classpath {} --> {}");
+		LOG.info("folder:"+folder+" .url:"+resource);
+		System.out.println("folder:"+folder+" .url:"+resource);
 		if (resource == null) {
 			throw new VelvetVideoException("Cannot locate native libraries resource " + folder + ". Make sure that velvet-video-natives in on classpath.");
 		}
@@ -118,6 +127,7 @@ public class JNRHelper {
 		                File destFile = new File(extractionDir, rawfilename);
 		                //LOG.atInfo().addArgument(zipEntry).addArgument(destFile.toString())
 		                	//.log("Extracting {} --> {}");
+		                System.out.println("Extracting {} "+zipEntry + " "+destFile.toString());
 		                try (InputStream inputStream = zif.getInputStream(zipEntry)) {
 		                    FileUtils.copyInputStreamToFile(inputStream, destFile);
 		                } catch (IOException e) {
@@ -205,15 +215,16 @@ public class JNRHelper {
 		File nativeLib = new File(extractionDir, libfile);
 		String nativeLibPath = nativeLib.toString();
 		if (!nativeLib.exists()) {
-			//LOG.atDebug().addArgument(nativeLibPath).log("Skipping non-existing native lib dependendcy file: {}");
+			LOG.info("Skipping non-existing native lib dependendcy file: {}"+nativeLibPath);
 			return -1;
 		}
-		//LOG.atDebug().addArgument(nativeLibPath).log("Preloading native lib dependendcy: {}");
+		LOG.info("Preloading native lib dependendcy: {}:"+nativeLibPath);
+		System.out.println("Preloading native lib dependendcy: {}:"+nativeLibPath);
 		try {
 			System.load(nativeLibPath);
 		} catch (LinkageError e) {
-			//LOG.atError().addArgument(nativeLibPath).addArgument(e.getMessage())
-				//	.log("Error preloading native lib dependency {} : {}");
+			LOG.error(e.getMessage(),e);
+			
 		}
 		return 0;
 	}
