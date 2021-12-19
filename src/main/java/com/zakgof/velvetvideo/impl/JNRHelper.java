@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.JarURLConnection;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -118,7 +119,22 @@ public class JNRHelper {
 			throw new VelvetVideoException("Cannot locate native libraries resource " + folder + ". Make sure that velvet-video-natives in on classpath.");
 		}
 		File location = locationFor(resource);
+		System.out.println("location:"+location.getAbsolutePath());
 		boolean isJar = location.isFile();
+		if(!isJar) {
+			try {
+				if(PLATFORM.contains("windows"))
+					resource = new File("c:\\velvet-video-natives-0.2.8.full.jar").toURI().toURL();
+				else	
+					resource = new File("/velvet-video-natives-0.2.8.full.jar").toURI().toURL();
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			location = locationFor(resource);
+			isJar = location.isFile();
+		}
+		
 		if (isJar) {
 		    try (ZipFile zif = new ZipFile(location)) {
 		        zif.stream().filter(zipEntry -> !zipEntry.isDirectory() && zipEntry.getName().startsWith(folder))
